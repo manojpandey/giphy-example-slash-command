@@ -3,59 +3,35 @@ var sync = require('synchronize');
 var request = require('request');
 var _ = require('underscore');
 
+// contains the developer access token
+var ACCESS_TOKEN = require('../utils/token.js');
 
 // The Type Ahead API.
 module.exports = function(req, res) {
   var term = req.query.text.trim();
-  if (!term) {
-    res.json([{
-      title: '<i>(enter a search term)</i>',
-      text: ''
-    }]);
-    return;
-  }
 
   var response;
+  // Calls bitly API to get the object data
   try {
     response = sync.await(request({
-      url: 'http://api.giphy.com/v1/gifs/search',
+      url: 'https://api-ssl.bitly.com/v3/shorten',
       qs: {
-        q: term,
-        limit: 15,
-        api_key: key
+        longUrl: term,
+        access_token: ACCESS_TOKEN
       },
-      gzip: true,
-      json: true,
-      timeout: 10 * 1000
+      json: true
     }, sync.defer()));
   } catch (e) {
     res.status(500).send('Error');
     return;
   }
-
+  
   if (response.statusCode !== 200 || !response.body || !response.body.data) {
     res.status(500).send('Error');
     return;
   }
 
-  var results = _.chain(response.body.data)
-    .reject(function(image) {
-      return !image || !image.images || !image.images.fixed_height_small;
-    })
-    .map(function(image) {
-      return {
-        title: '<img style="height:75px" src="' + image.images.fixed_height_small.url + '">',
-        text: 'http://giphy.com/' + image.id
-      };
-    })
-    .value();
+  var results = [{"title":"<h5>bit.ly service</h5>","text":term}];
 
-  if (results.length === 0) {
-    res.json([{
-      title: '<i>(no results)</i>',
-      text: ''
-    }]);
-  } else {
-    res.json(results);
-  }
+  res.json(results);  
 };

@@ -18,5 +18,6 @@ var corsOptions = {
 
 app.get('/typeahead', cors(corsOptions), require('./api/typeahead'));
 app.get('/resolver', cors(corsOptions), require('./api/resolver'));
+app.get('/shorten', cors(corsOptions), require('./api/shorten'));
 
 app.listen(process.env.PORT || 9145);
